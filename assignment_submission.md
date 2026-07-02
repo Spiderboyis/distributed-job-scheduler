@@ -1,14 +1,15 @@
 # JobForge: Distributed Job Scheduler
 
-## 1. Setup Instructions
+## 1. Setup & Deployment Instructions
 
-### Prerequisites
+### 1.1 Prerequisites
 - Node.js (v24.x)
 - PostgreSQL (v15+)
+- Docker & Docker Compose
 - Git
 
-### Installation
-1. Clone the repository and install dependencies:
+### 1.2 Local Setup (Development)
+1. Clone the repository and install workspace dependencies:
 ```bash
 git clone https://github.com/Spiderboyis/distributed-job-scheduler.git
 cd distributed-job-scheduler
@@ -19,18 +20,22 @@ npm install
 Create a `.env` file in `packages/backend`:
 ```env
 PORT=3001
-DATABASE_URL=postgresql://user:password@localhost:5432/jobscheduler
+DATABASE_URL=postgresql://jobscheduler:jobscheduler_secret@localhost:5432/jobscheduler
 JWT_SECRET=your_super_secret_key
 JWT_REFRESH_SECRET=your_refresh_secret
 NODE_ENV=development
 ```
 
-3. Database Migration:
+3. Database Migration & Seeding:
 ```bash
+# Run PostgreSQL migrations
 npm run db:migrate --workspace=packages/backend
+
+# (Optional) Seed the database with demo data
+npm run db:seed --workspace=packages/backend
 ```
 
-4. Start the Full Stack (Development):
+4. Start the Application:
 ```bash
 # Terminal 1: Backend
 npm run dev:backend
@@ -38,6 +43,39 @@ npm run dev:backend
 # Terminal 2: Frontend
 npm run dev:frontend
 ```
+
+---
+
+### 1.3 Docker & Docker Compose Setup
+To launch the complete PostgreSQL Database, Express.js Backend, and Next.js Frontend stack inside isolated Docker containers, simply run:
+```bash
+docker compose up --build
+```
+This automatically builds the containers, runs migrations, and links the services together. The services will be accessible at:
+- **Frontend Panel**: `http://localhost:3000`
+- **Backend API**: `http://localhost:3001`
+- **PostgreSQL Database**: `localhost:5432` (credentials: `jobscheduler` / `jobscheduler_secret`)
+
+---
+
+### 1.4 Production Deployment (Render / Cloud)
+This application is configured for direct cloud deployment using services like Render, AWS ECS, or Heroku.
+
+#### Backend & Worker Deployment:
+- **Build Command**: `npm install --include=dev && npm run build:backend`
+- **Start Command**: `npm run db:migrate && node packages/backend/dist/index.js`
+- **Port**: `3001`
+- **Environment Variables**:
+  - `DATABASE_URL`: Connection string pointing to your managed production database.
+  - `JWT_SECRET` & `JWT_REFRESH_SECRET`: Secure cryptographic keys.
+  - `NODE_ENV`: `production`
+
+#### Frontend Deployment:
+- **Build Command**: `npm install --include=dev && npm run build:frontend`
+- **Start Command**: `npm run start --workspace=packages/frontend`
+- **Port**: `3000`
+- **Environment Variables**:
+  - `NEXT_PUBLIC_API_URL`: Public address of your deployed Backend API.
 
 ---
 

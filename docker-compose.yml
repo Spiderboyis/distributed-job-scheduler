@@ -18,5 +18,36 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: jobscheduler-backend
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://jobscheduler:jobscheduler_secret@postgres:5432/jobscheduler
+      JWT_SECRET: production_secret_jwt_key
+      JWT_REFRESH_SECRET: production_refresh_secret_jwt_key
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: jobscheduler-frontend
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
