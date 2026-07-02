@@ -24,9 +24,16 @@ export class WorkerService {
   private activeJobs = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private isPolling = false;
+  private pollRequested = false;
+
   private dbListener = () => {
     if (this.isRunning && !this.isDraining && this.activeJobs < env.WORKER_CONCURRENCY) {
-      this.poll();
+      if (this.isPolling) {
+        this.pollRequested = true;
+      } else {
+        this.poll();
+      }
     }
   };
 
@@ -93,7 +100,14 @@ export class WorkerService {
   private async poll(): Promise<void> {
     if (!this.isRunning || this.isDraining) return;
     if (this.activeJobs >= env.WORKER_CONCURRENCY) return;
-
+    
+    if (this.isPolling) {
+      this.pollRequested = true;
+      return;
+    }
+    
+    this.isPolling = true;
+    this.pollRequested = false;
     if (this.pollTimer) clearTimeout(this.pollTimer);
 
     try {
@@ -105,6 +119,8 @@ export class WorkerService {
           // Trigger a poll when a job finishes in case more are waiting
           this.poll();
         });
+        
+        this.isPolling = false;
         // Immediately try to claim another job to fill concurrency slots
         this.poll();
         return;
@@ -113,9 +129,15 @@ export class WorkerService {
       console.error('[Worker] Poll error:', error);
     }
 
-    // No jobs found. Fallback to a slow 60-second timer for delayed/scheduled jobs.
-    // Standard execution relies on instant dbEvents triggers.
-    this.pollTimer = setTimeout(() => this.poll(), 60000);
+    this.isPolling = false;
+    
+    if (this.pollRequested) {
+      this.poll();
+    } else {
+      // No jobs found. Fallback to a slow 60-second timer for delayed/scheduled jobs.
+      // Standard execution relies on instant dbEvents triggers.
+      this.pollTimer = setTimeout(() => this.poll(), 60000);
+    }
   }
 
   /**
