@@ -1,5 +1,11 @@
 # JobForge: Distributed Job Scheduler
 
+## Live Deployments
+- **Frontend App (Vercel)**: [https://distributed-job-scheduler-frontend-six.vercel.app/](https://distributed-job-scheduler-frontend-six.vercel.app/)
+- **Backend API & Worker (Render)**: [https://jobscheduler-backend.onrender.com](https://jobscheduler-backend.onrender.com)
+
+---
+
 ## 1. Setup & Deployment Instructions
 
 ### 1.1 Prerequisites
@@ -59,23 +65,31 @@ This automatically builds the containers, runs migrations, and links the service
 ---
 
 ### 1.4 Production Deployment (Render / Cloud)
-This application is configured for direct cloud deployment using services like Render, AWS ECS, or Heroku.
+This application is configured for direct cloud deployment using services like Render, Vercel, and cloud PostgreSQL databases.
+
+#### Database Deployment (PostgreSQL):
+- **Platform**: Managed production-grade PostgreSQL (v15+) instance hosted on **Render PostgreSQL** (or equivalent cloud providers like Supabase, Neon, or AWS RDS).
+- **Configuration**: Handles concurrent connections from distributed workers via connection pooling.
+- **Trigger Triggers**: Relies on PostgreSQL trigger mechanisms and `LISTEN`/`NOTIFY` to stream real-time updates (through Server-Sent Events) to the React dashboard.
+- **Migrations**: Automated migrations run dynamically prior to service startup using the connection string configured under `DATABASE_URL`.
 
 #### Backend & Worker Deployment:
+- **Host**: **Render** (Web Service & Cron / Background Workers)
 - **Build Command**: `npm install --include=dev && npm run build:backend`
 - **Start Command**: `npm run db:migrate && node packages/backend/dist/index.js`
 - **Port**: `3001`
 - **Environment Variables**:
-  - `DATABASE_URL`: Connection string pointing to your managed production database.
+  - `DATABASE_URL`: Connection string pointing to your managed cloud PostgreSQL database.
   - `JWT_SECRET` & `JWT_REFRESH_SECRET`: Secure cryptographic keys.
   - `NODE_ENV`: `production`
 
 #### Frontend Deployment:
+- **Host**: **Vercel**
 - **Build Command**: `npm install --include=dev && npm run build:frontend`
 - **Start Command**: `npm run start --workspace=packages/frontend`
 - **Port**: `3000`
 - **Environment Variables**:
-  - `NEXT_PUBLIC_API_URL`: Public address of your deployed Backend API.
+  - `NEXT_PUBLIC_API_URL`: `https://jobscheduler-backend.onrender.com` (Public address of your deployed Backend API on Render).
 
 ---
 
