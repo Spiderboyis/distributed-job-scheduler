@@ -70,10 +70,11 @@ This automatically builds the containers, runs migrations, and links the service
 This application is configured for direct cloud deployment using services like Render, Vercel, and cloud PostgreSQL databases.
 
 #### Database Deployment (PostgreSQL):
-- **Platform**: Managed production-grade PostgreSQL (v15+) instance hosted on **Render PostgreSQL** (or equivalent cloud providers like Supabase, Neon, or AWS RDS).
-- **Configuration**: Handles concurrent connections from distributed workers via connection pooling.
-- **Trigger Triggers**: Relies on PostgreSQL trigger mechanisms and `LISTEN`/`NOTIFY` to stream real-time updates (through Server-Sent Events) to the React dashboard.
-- **Migrations**: Automated migrations run dynamically prior to service startup using the connection string configured under `DATABASE_URL`.
+- **Platform**: **Neon** — Serverless PostgreSQL (v16+). Neon provides a fully managed, auto-scaling, serverless Postgres database with branching, connection pooling via **PgBouncer**, and instant cold-start support.
+- **Connection Pooling**: Neon's built-in PgBouncer connection pooler is used to efficiently manage concurrent connections from distributed workers without exhausting database limits.
+- **Serverless Advantage**: Neon automatically scales storage and compute independently, meaning the database scales to zero during inactivity and wakes up near-instantly on new requests — ideal for a distributed job scheduler with bursty traffic patterns.
+- **LISTEN/NOTIFY**: The platform uses PostgreSQL's `LISTEN`/`NOTIFY` mechanism to push real-time job status events from the database to the Express SSE emitter, which streams live updates to the React dashboard.
+- **Migrations**: Automated SQL migrations run on every backend startup using the `DATABASE_URL` connection string pointing to the Neon project endpoint.
 
 #### Backend & Worker Deployment:
 - **Host**: **Render** (Web Service & Cron / Background Workers)
