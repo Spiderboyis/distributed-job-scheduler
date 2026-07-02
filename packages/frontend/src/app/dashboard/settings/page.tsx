@@ -80,22 +80,22 @@ export default function SettingsPage() {
         <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-4 flex items-center gap-2"><SettingsIcon className="w-4 h-4" /> Account Settings</h2>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-[var(--color-border)] rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] border border-[var(--color-border)] rounded-lg gap-4">
             <div>
               <p className="font-medium text-[var(--color-foreground)]">Sign Out</p>
               <p className="text-xs text-[var(--color-muted)]">Log out of your current session on this device.</p>
             </div>
-            <button onClick={handleLogout} className="btn-secondary flex items-center gap-2">
+            <button onClick={handleLogout} className="btn-secondary flex items-center justify-center gap-2 w-full sm:w-auto">
               <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-red-500/5 border border-red-500/20 rounded-lg gap-4">
             <div>
               <p className="font-medium text-red-400">Delete Account</p>
               <p className="text-xs text-[var(--color-muted)]">Permanently delete your account and all associated organizations, queues, and jobs. This action cannot be undone.</p>
             </div>
-            <button onClick={() => setShowDeleteModal(true)} className="btn-primary bg-red-500 hover:bg-red-600 text-white flex items-center gap-2">
+            <button onClick={() => setShowDeleteModal(true)} className="btn-primary bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-2 w-full sm:w-auto">
               <AlertTriangle className="w-4 h-4" /> Delete Account
             </button>
           </div>

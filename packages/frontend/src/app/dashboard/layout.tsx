@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { LayoutDashboard, Layers, Server, AlertTriangle, Settings, Zap, LogOut, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Layers, Server, AlertTriangle, Settings, Zap, LogOut, Menu, X } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = api.getToken();
@@ -25,17 +26,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     api.getMe().then(data => setUser(data.user)).catch(() => { api.clearToken(); router.push("/"); });
   }, [router]);
 
+  useEffect(() => {
+    // Close mobile menu when route changes
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleLogout = () => { api.clearToken(); router.push("/"); };
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden bg-[#000000]">
+    <div className="min-h-screen flex flex-col md:flex-row relative overflow-hidden bg-[#000000]">
       {/* Background Orbs for Glassmorphism */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-900/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-[40%] left-[50%] w-[500px] h-[500px] bg-emerald-900/10 rounded-full blur-[150px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
       
-      {/* Sidebar */}
-      <aside className={`${collapsed ? "w-16" : "w-60"} relative z-10 border-r border-white/10 bg-white/[0.02] backdrop-blur-3xl flex flex-col transition-all duration-200`}>
+      {/* Mobile Top Header */}
+      <header className="flex md:hidden items-center justify-between p-4 border-b border-white/10 bg-white/[0.02] backdrop-blur-md relative z-20">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+            <Zap className="w-4 h-4 text-black" />
+          </div>
+          <span className="font-bold text-sm tracking-tight text-[var(--color-foreground)]">JobForge</span>
+        </div>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-[var(--color-muted)] hover:text-white rounded-lg bg-white/[0.03] border border-white/10">
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </header>
+
+      {/* Desktop Sidebar (hidden on mobile) */}
+      <aside className={`hidden md:flex ${collapsed ? "w-16" : "w-60"} relative z-10 border-r border-white/10 bg-white/[0.02] backdrop-blur-3xl flex-col transition-all duration-200`}>
         <div className="p-4 flex items-center gap-2 border-b border-[var(--color-border)]">
           <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-black" />
@@ -62,9 +81,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
         </div>
       </aside>
+
+      {/* Mobile Drawer Sidebar (slide-out overlay) */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden flex">
+          {/* Backdrop */}
+          <div onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-fade-in" />
+          
+          {/* Drawer content */}
+          <div className="relative w-64 bg-[#0a0a0a]/90 backdrop-blur-3xl border-r border-white/10 flex flex-col p-4 z-50 animate-slide-in h-full">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-4 h-4 text-black" />
+                </div>
+                <span className="font-bold text-sm tracking-tight text-[var(--color-foreground)]">JobForge</span>
+              </div>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-1 text-[var(--color-muted)] hover:text-white rounded bg-white/5">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <nav className="flex-1 space-y-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                return (
+                  <Link key={item.href} href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${isActive ? "bg-white/[0.05] text-[var(--color-foreground)] border border-[var(--color-border)] shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-foreground)] hover:bg-white/[0.02]"}`}>
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="pt-4 border-t border-white/10 mt-auto">
+              {user && <p className="text-xs text-[var(--color-muted)] mb-2 truncate px-2">{user.email}</p>}
+              <button onClick={handleLogout} className="flex items-center gap-2 text-xs text-[var(--color-muted)] hover:text-red-400 hover:bg-white/[0.05] rounded-lg transition-colors w-full px-2 py-2">
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className="flex-1 overflow-auto relative z-10">
-        <div className="p-6 max-w-7xl mx-auto">{children}</div>
+      <main className="flex-1 overflow-auto relative z-10 w-full">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">{children}</div>
       </main>
     </div>
   );

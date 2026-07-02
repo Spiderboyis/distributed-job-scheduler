@@ -114,35 +114,37 @@ export default function QueueDetailPage() {
 
       {/* Jobs Table */}
       <div className="glass-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--color-border)]">
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Name</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Type</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Status</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Priority</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Retries</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Created</th>
-              <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job) => {
-              const Icon = statusIcons[job.status] || Clock;
-              return (
-                <tr key={job.id} className="border-b border-[var(--color-border)] hover:bg-white/[0.02] cursor-pointer transition-colors" onClick={() => router.push(`/dashboard/jobs/${job.id}`)}>
-                  <td className="p-3 font-medium">{job.name}</td>
-                  <td className="p-3"><span className="badge bg-white/5 text-[var(--color-muted)]">{job.type}</span></td>
-                  <td className="p-3"><span className={`badge ${statusColors[job.status]}`}><Icon className="w-3 h-3" />{job.status}</span></td>
-                  <td className="p-3">{job.priority}</td>
-                  <td className="p-3">{job.retry_count}/{job.max_retries}</td>
-                  <td className="p-3 text-[var(--color-muted)] font-mono text-xs">{new Date(job.created_at).toLocaleString()}</td>
-                  <td className="p-3"><ChevronRight className="w-4 h-4 text-[var(--color-muted)]" /></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm min-w-[700px]">
+            <thead>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Name</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Type</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Status</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Priority</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Retries</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium">Created</th>
+                <th className="text-left p-3 text-xs text-[var(--color-muted)] font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map((job) => {
+                const Icon = statusIcons[job.status] || Clock;
+                return (
+                  <tr key={job.id} className="border-b border-[var(--color-border)] hover:bg-white/[0.02] cursor-pointer transition-colors" onClick={() => router.push(`/dashboard/jobs/${job.id}`)}>
+                    <td className="p-3 font-medium">{job.name}</td>
+                    <td className="p-3"><span className="badge bg-white/5 text-[var(--color-muted)]">{job.type}</span></td>
+                    <td className="p-3"><span className={`badge ${statusColors[job.status]}`}><Icon className="w-3 h-3" />{job.status}</span></td>
+                    <td className="p-3">{job.priority}</td>
+                    <td className="p-3">{job.retry_count}/{job.max_retries}</td>
+                    <td className="p-3 text-[var(--color-muted)] font-mono text-xs">{new Date(job.created_at).toLocaleString()}</td>
+                    <td className="p-3"><ChevronRight className="w-4 h-4 text-[var(--color-muted)]" /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         {jobs.length === 0 && <div className="p-8 text-center text-[var(--color-muted)]">No jobs found</div>}
       </div>
 
