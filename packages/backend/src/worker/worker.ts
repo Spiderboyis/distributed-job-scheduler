@@ -290,7 +290,7 @@ export class WorkerService {
    */
   private async reclaimStaleJobs(): Promise<void> {
     try {
-      // Mark stale workers
+      // 1. Mark stale workers as inactive
       const staleResult = await query(
         `UPDATE workers SET status = 'inactive'
          WHERE status = 'active' AND last_heartbeat < now() - interval '${env.WORKER_STALE_THRESHOLD / 1000} seconds'
@@ -300,18 +300,34 @@ export class WorkerService {
       if (staleResult.rows.length > 0) {
         const staleIds = staleResult.rows.map((r: any) => r.id);
         console.log(`[Worker] Detected ${staleIds.length} stale worker(s): ${staleIds.join(', ')}`);
-
-        // Reclaim jobs from stale workers
-        const reclaimedResult = await query(
-          `UPDATE jobs SET status = 'queued', claimed_by = NULL, started_at = NULL
-           WHERE claimed_by = ANY($1) AND status IN ('claimed', 'running')
-           RETURNING id`, [staleIds]
-        );
-
-        if (reclaimedResult.rows.length > 0) {
-          console.log(`[Worker] Reclaimed ${reclaimedResult.rows.length} job(s) from stale workers`);
-        }
       }
+
+      // 2. Reclaim jobs from ALL inactive workers (catches crashed workers and graceful shutdown orphans)
+      const reclaimedResult = await query(
+        `UPDATE jobs j SET status = 'queued', claimed_by = NULL, started_at = NULL
+         FROM workers w
+         WHERE j.claimed_by = w.id 
+           AND w.status = 'inactive' 
+           AND j.status IN ('claimed', 'running')
+         RETURNING j.id`
+      );
+
+      if (reclaimedResult.rows.length > 0) {
+        console.log(`[Worker] Reclaimed ${reclaimedResult.rows.length} job(s) from inactive workers`);
+      }
+
+      // 3. Reclaim timed-out jobs
+      const timeoutResult = await query(
+        `UPDATE jobs SET status = 'queued', claimed_by = NULL, started_at = NULL
+         WHERE status IN ('claimed', 'running') 
+           AND started_at + (timeout_ms / 1000.0) * INTERVAL '1 second' < now()
+         RETURNING id`
+      );
+
+      if (timeoutResult.rows.length > 0) {
+        console.log(`[Worker] Reclaimed ${timeoutResult.rows.length} timed-out job(s)`);
+      }
+
     } catch (error) {
       console.error('[Worker] Stale detection error:', error);
     }

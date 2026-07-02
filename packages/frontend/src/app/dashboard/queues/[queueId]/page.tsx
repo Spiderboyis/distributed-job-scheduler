@@ -46,7 +46,10 @@ export default function QueueDetailPage() {
       setShowCreate(false);
       setNewJob({ name: "", type: "immediate", payload: "{}", priority: 0, scheduledAt: "" });
       loadAll();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { 
+      console.error(err); 
+      alert(err.message || 'Failed to create job');
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
@@ -83,7 +86,7 @@ export default function QueueDetailPage() {
             <select className="input-field" value={newJob.type} onChange={e => setNewJob({ ...newJob, type: e.target.value })}>
               <option value="immediate">Immediate</option><option value="delayed">Delayed</option><option value="scheduled">Scheduled</option>
             </select>
-            <input className="input-field" type="number" placeholder="Priority" value={newJob.priority} onChange={e => setNewJob({ ...newJob, priority: parseInt(e.target.value) })} />
+            <input className="input-field" type="number" placeholder="Priority" value={Number.isNaN(newJob.priority) ? '' : newJob.priority} onChange={e => setNewJob({ ...newJob, priority: parseInt(e.target.value || "0", 10) })} />
             {(newJob.type === "delayed" || newJob.type === "scheduled") && <input className="input-field" type="datetime-local" value={newJob.scheduledAt} onChange={e => setNewJob({ ...newJob, scheduledAt: e.target.value })} />}
           </div>
           <textarea className="input-field h-20" placeholder='Payload (JSON): {"type": "email_send", "to": "user@example.com"}' value={newJob.payload} onChange={e => setNewJob({ ...newJob, payload: e.target.value })} />
