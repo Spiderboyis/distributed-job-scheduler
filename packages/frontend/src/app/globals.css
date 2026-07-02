@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0f1e;
+  --color-foreground: #e2e8f0;
+  --color-card: #111827;
+  --color-card-hover: #1a2234;
+  --color-border: #1e293b;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-accent: #8b5cf6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-muted: #64748b;
+  --color-surface: #0f172a;
+}
+
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(30, 41, 59, 0.5);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  .glass-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.05);
+  }
+  .status-queued { color: #94a3b8; background: rgba(148,163,184,0.1); }
+  .status-scheduled { color: #a78bfa; background: rgba(167,139,250,0.1); }
+  .status-claimed { color: #38bdf8; background: rgba(56,189,248,0.1); }
+  .status-running { color: #fbbf24; background: rgba(251,191,36,0.1); }
+  .status-completed { color: #34d399; background: rgba(52,211,153,0.1); }
+  .status-failed { color: #f87171; background: rgba(248,113,113,0.1); }
+  .status-dead { color: #fb7185; background: rgba(251,113,133,0.1); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+
+  .btn-secondary {
+    background: rgba(30,41,59,0.5);
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #1e293b;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(30,41,59,0.8); color: #e2e8f0; }
+
+  .btn-danger {
+    background: rgba(239,68,68,0.1);
+    color: #f87171;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(239,68,68,0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+  .input-field {
+    background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
+    color: #e2e8f0;
+    width: 100%;
+    transition: border-color 0.2s;
+    outline: none;
+    font-size: 0.875rem;
+  }
+  .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+
+  .badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* Animations */
+@keyframes pulse-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+@keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-in { animation: slide-in 0.3s ease-out; }
