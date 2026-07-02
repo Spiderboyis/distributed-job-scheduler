@@ -9,10 +9,10 @@ import { NotFoundError, ConflictError, ValidationError } from '../utils/errors.j
 const router = Router();
 
 const createJobSchema = z.object({
-  name: z.string().min(1).max(100).default('untitled'),
+  name: z.string().min(1).max(255).default('untitled'),
   type: z.enum(['immediate', 'delayed', 'scheduled', 'recurring', 'batch']).default('immediate'),
-  payload: z.record(z.any()).default({}),
-  priority: z.number().int().min(0).max(100).default(0),
+  payload: z.any().default({}),
+  priority: z.number().int().min(0).max(1000000).default(0),
   scheduledAt: z.string().datetime().optional(),
   idempotencyKey: z.string().max(255).optional(),
   timeoutMs: z.number().int().min(1000).max(600000).default(30000),
