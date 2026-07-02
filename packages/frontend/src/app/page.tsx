@@ -7,8 +7,8 @@ import { Zap } from "lucide-react";
 export default function LoginPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("demo@jobscheduler.dev");
-  const [password, setPassword] = useState("demo123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

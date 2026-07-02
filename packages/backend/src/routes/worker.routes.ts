@@ -6,7 +6,7 @@ import { paginate } from '../middleware/validate.js';
 const router = Router();
 
 // GET /api/workers — List all workers
-router.get('/', authenticate, async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await query(
       `SELECT w.*,
@@ -14,7 +14,15 @@ router.get('/', authenticate, async (_req: Request, res: Response, next: NextFun
               (SELECT count(*)::int FROM jobs WHERE claimed_by = w.id AND status = 'completed') as completed_jobs,
               (SELECT count(*)::int FROM jobs WHERE claimed_by = w.id AND status = 'failed') as failed_jobs,
               EXTRACT(EPOCH FROM (now() - w.last_heartbeat))::int as seconds_since_heartbeat
-       FROM workers w ORDER BY w.status ASC, w.last_heartbeat DESC`
+       FROM workers w 
+       WHERE EXISTS (
+         SELECT 1 FROM jobs j
+         JOIN queues q ON q.id = j.queue_id
+         JOIN projects p ON p.id = q.project_id
+         JOIN org_members om ON om.organization_id = p.organization_id
+         WHERE j.claimed_by = w.id AND om.user_id = $1
+       )
+       ORDER BY w.status ASC, w.last_heartbeat DESC`, [req.user?.userId]
     );
     res.json({ workers: result.rows });
   } catch (error) { next(error); }
@@ -43,16 +51,27 @@ router.get('/dlq/entries', authenticate, paginate, async (req: Request, res: Res
   try {
     const { page, limit, offset } = (req as any).pagination;
     const queueId = req.query.queueId as string;
-    let where = 'WHERE 1=1';
-    const params: any[] = [];
-    let p = 1;
+    let where = 'WHERE om.user_id = $1';
+    const params: any[] = [req.user?.userId];
+    let p = 2;
     if (queueId) { where += ` AND d.queue_id = $${p}`; params.push(queueId); p++; }
 
-    const countResult = await query(`SELECT count(*)::int as total FROM dead_letter_queue d ${where}`, params);
+    const countResult = await query(`
+      SELECT count(*)::int as total 
+      FROM dead_letter_queue d 
+      JOIN queues q ON q.id = d.queue_id
+      JOIN projects pr ON pr.id = q.project_id
+      JOIN org_members om ON om.organization_id = pr.organization_id
+      ${where}`, params);
+      
     params.push(limit, offset);
     const result = await query(
       `SELECT d.*, q.name as queue_name, j.name as job_name, j.type as job_type
-       FROM dead_letter_queue d LEFT JOIN queues q ON q.id = d.queue_id LEFT JOIN jobs j ON j.id = d.original_job_id
+       FROM dead_letter_queue d 
+       LEFT JOIN queues q ON q.id = d.queue_id 
+       LEFT JOIN jobs j ON j.id = d.original_job_id
+       JOIN projects pr ON pr.id = q.project_id
+       JOIN org_members om ON om.organization_id = pr.organization_id
        ${where} ORDER BY d.failed_at DESC LIMIT $${p} OFFSET $${p + 1}`, params
     );
     res.json({ entries: result.rows, pagination: { page, limit, total: countResult.rows[0].total, totalPages: Math.ceil(countResult.rows[0].total / limit) } });
@@ -77,27 +96,50 @@ router.post('/dlq/:id/retry', authenticate, async (req: Request, res: Response, 
 });
 
 // GET /api/dashboard/stats — Dashboard overview stats
-router.get('/dashboard/stats', authenticate, async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/dashboard/stats', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.user?.userId;
     const jobStats = await query(
-      `SELECT count(*)::int as total, count(*) FILTER (WHERE status = 'queued')::int as queued,
-              count(*) FILTER (WHERE status = 'running')::int as running,
-              count(*) FILTER (WHERE status = 'completed')::int as completed,
-              count(*) FILTER (WHERE status = 'failed')::int as failed,
-              count(*) FILTER (WHERE status = 'dead')::int as dead,
-              count(*) FILTER (WHERE created_at > now() - interval '1 hour')::int as created_last_hour,
-              count(*) FILTER (WHERE status = 'completed' AND completed_at > now() - interval '1 hour')::int as completed_last_hour
-       FROM jobs`
+      `SELECT count(*)::int as total, count(*) FILTER (WHERE j.status = 'queued')::int as queued,
+              count(*) FILTER (WHERE j.status = 'running')::int as running,
+              count(*) FILTER (WHERE j.status = 'completed')::int as completed,
+              count(*) FILTER (WHERE j.status = 'failed')::int as failed,
+              count(*) FILTER (WHERE j.status = 'dead')::int as dead,
+              count(*) FILTER (WHERE j.created_at > now() - interval '1 hour')::int as created_last_hour,
+              count(*) FILTER (WHERE j.status = 'completed' AND j.completed_at > now() - interval '1 hour')::int as completed_last_hour
+       FROM jobs j
+       JOIN queues q ON q.id = j.queue_id
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE om.user_id = $1`, [userId]
     );
     const workerStats = await query(
-      `SELECT count(*)::int as total, count(*) FILTER (WHERE status = 'active')::int as active,
-              count(*) FILTER (WHERE status = 'inactive')::int as inactive
-       FROM workers`
+      `SELECT count(*)::int as total, count(*) FILTER (WHERE w.status = 'active')::int as active,
+              count(*) FILTER (WHERE w.status = 'inactive')::int as inactive
+       FROM workers w
+       WHERE EXISTS (
+         SELECT 1 FROM jobs j
+         JOIN queues q ON q.id = j.queue_id
+         JOIN projects p ON p.id = q.project_id
+         JOIN org_members om ON om.organization_id = p.organization_id
+         WHERE j.claimed_by = w.id AND om.user_id = $1
+       )`, [userId]
     );
     const queueStats = await query(
-      `SELECT count(*)::int as total, count(*) FILTER (WHERE is_paused = true)::int as paused FROM queues`
+      `SELECT count(*)::int as total, count(*) FILTER (WHERE q.is_paused = true)::int as paused 
+       FROM queues q
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE om.user_id = $1`, [userId]
     );
-    const dlqCount = await query(`SELECT count(*)::int as total FROM dead_letter_queue WHERE requeued_at IS NULL`);
+    const dlqCount = await query(
+      `SELECT count(*)::int as total 
+       FROM dead_letter_queue d
+       JOIN queues q ON q.id = d.queue_id
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE om.user_id = $1 AND d.requeued_at IS NULL`, [userId]
+    );
 
     res.json({
       jobs: jobStats.rows[0],

@@ -37,6 +37,7 @@ class ApiClient {
     return data;
   }
   async getMe() { return this.request<any>('/auth/me'); }
+  async deleteAccount(password: string) { return this.request<any>('/auth/account', { method: 'DELETE', body: JSON.stringify({ password }) }); }
 
   // Organizations
   async getOrgs() { return this.request<any>('/orgs'); }

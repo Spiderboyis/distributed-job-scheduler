@@ -30,6 +30,15 @@ router.post('/queues/:queueId/jobs', authenticate, validate(createJobSchema),
       const { queueId } = req.params;
       const { name, type, payload, priority, scheduledAt, idempotencyKey, timeoutMs, maxRetries } = req.body;
 
+      // Authorization check
+      const authResult = await query(
+        `SELECT q.id FROM queues q
+         JOIN projects p ON p.id = q.project_id
+         JOIN org_members om ON om.organization_id = p.organization_id
+         WHERE q.id = $1 AND om.user_id = $2`, [queueId, req.user?.userId]
+      );
+      if (authResult.rows.length === 0) throw new UnauthorizedError('Not authorized to access this queue');
+
       // Verify queue exists and get retry policy
       const queueResult = await query(
         `SELECT q.*, rp.max_retries as policy_max_retries FROM queues q
@@ -77,6 +86,15 @@ router.post('/queues/:queueId/jobs/batch', authenticate, validate(batchJobSchema
       const batchId = uuidv4();
       const jobs = req.body.jobs;
 
+      // Authorization check
+      const authResult = await query(
+        `SELECT q.id FROM queues q
+         JOIN projects p ON p.id = q.project_id
+         JOIN org_members om ON om.organization_id = p.organization_id
+         WHERE q.id = $1 AND om.user_id = $2`, [queueId, req.user?.userId]
+      );
+      if (authResult.rows.length === 0) throw new UnauthorizedError('Not authorized to access this queue');
+
       const created = await transaction(async (client) => {
         const results = [];
         for (const job of jobs) {
@@ -101,6 +119,15 @@ router.get('/queues/:queueId/jobs', authenticate, paginate, async (req: Request,
     const { queueId } = req.params;
     const { page, limit, offset } = (req as any).pagination;
     const { status, type, search } = req.query;
+
+    // Authorization check
+    const authResult = await query(
+      `SELECT q.id FROM queues q
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE q.id = $1 AND om.user_id = $2`, [queueId, req.user?.userId]
+    );
+    if (authResult.rows.length === 0) throw new UnauthorizedError('Not authorized to access this queue');
 
     let where = 'WHERE j.queue_id = $1';
     const params: any[] = [queueId];
@@ -129,6 +156,16 @@ router.get('/queues/:queueId/jobs', authenticate, paginate, async (req: Request,
 // GET /api/jobs/:jobId — Job detail with executions and logs
 router.get('/jobs/:jobId', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Authorization check
+    const authResult = await query(
+      `SELECT j.id FROM jobs j
+       JOIN queues q ON q.id = j.queue_id
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE j.id = $1 AND om.user_id = $2`, [req.params.jobId, req.user?.userId]
+    );
+    if (authResult.rows.length === 0) throw new UnauthorizedError('Not authorized to access this job');
+
     const jobResult = await query(
       `SELECT j.*, q.name as queue_name, q.slug as queue_slug, w.name as worker_name
        FROM jobs j LEFT JOIN queues q ON q.id = j.queue_id LEFT JOIN workers w ON w.id = j.claimed_by
@@ -153,6 +190,16 @@ router.get('/jobs/:jobId', authenticate, async (req: Request, res: Response, nex
 // POST /api/jobs/:jobId/retry — Manual retry
 router.post('/jobs/:jobId/retry', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Authorization check
+    const authResult = await query(
+      `SELECT j.id FROM jobs j
+       JOIN queues q ON q.id = j.queue_id
+       JOIN projects p ON p.id = q.project_id
+       JOIN org_members om ON om.organization_id = p.organization_id
+       WHERE j.id = $1 AND om.user_id = $2`, [req.params.jobId, req.user?.userId]
+    );
+    if (authResult.rows.length === 0) throw new UnauthorizedError('Not authorized to access this job');
+
     const jobResult = await query('SELECT * FROM jobs WHERE id = $1', [req.params.jobId]);
     if (jobResult.rows.length === 0) throw new NotFoundError('Job', req.params.jobId);
     const job = jobResult.rows[0];

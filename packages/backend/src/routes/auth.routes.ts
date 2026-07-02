@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { query } from '../config/database.js';
+import { query, transaction } from '../config/database.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
@@ -193,6 +193,42 @@ router.get(
           organizations: user.organizations || [],
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ── DELETE /api/auth/account ────────────────────────────────
+const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Password is required to delete account'),
+});
+
+router.delete(
+  '/account',
+  authenticate,
+  validate(deleteAccountSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { password } = req.body;
+      const userId = req.user!.userId;
+
+      // Verify user
+      const result = await query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+      if (result.rows.length === 0) throw new NotFoundError('User', userId);
+
+      // Verify password
+      const isValid = await bcrypt.compare(password, result.rows[0].password_hash);
+      if (!isValid) throw new UnauthorizedError('Incorrect password');
+
+      // Delete organizations created by user (cascades to projects, queues, jobs)
+      // Then delete the user (cascades to org_members)
+      await transaction(async (client) => {
+        await client.query('DELETE FROM organizations WHERE created_by = $1', [userId]);
+        await client.query('DELETE FROM users WHERE id = $1', [userId]);
+      });
+
+      res.json({ message: 'Account and all associated data deleted successfully' });
     } catch (error) {
       next(error);
     }
