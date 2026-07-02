@@ -24,7 +24,7 @@ export default function DLQPage() {
     try { await api.retryDlqEntry(id); load(); } catch (err) { console.error(err); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -61,7 +61,7 @@ export default function DLQPage() {
                     <button onClick={() => handleRetry(entry.id)} className="btn-primary text-xs flex items-center gap-1 py-1 px-2">
                       <RotateCcw className="w-3 h-3" /> Retry
                     </button>
-                  ) : <span className="text-xs text-emerald-400">Requeued</span>}
+                  ) : <span className="text-xs text-[var(--color-foreground)] font-medium">Requeued</span>}
                 </td>
               </tr>
             ))}

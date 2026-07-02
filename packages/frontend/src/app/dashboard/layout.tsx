@@ -32,17 +32,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className={`${collapsed ? "w-16" : "w-60"} border-r border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col transition-all duration-200`}>
         <div className="p-4 flex items-center gap-2 border-b border-[var(--color-border)]">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+            <Zap className="w-4 h-4 text-black" />
           </div>
-          {!collapsed && <span className="font-bold text-sm bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">JobForge</span>}
+          {!collapsed && <span className="font-bold text-sm tracking-tight text-[var(--color-foreground)]">JobForge</span>}
         </div>
         <nav className="flex-1 p-2 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <Link key={item.href} href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${isActive ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "text-[var(--color-muted)] hover:text-[var(--color-foreground)] hover:bg-white/5"}`}>
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${isActive ? "bg-white/[0.05] text-[var(--color-foreground)] border border-[var(--color-border)] shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-foreground)] hover:bg-white/[0.02]"}`}>
                 <item.icon className="w-4 h-4 flex-shrink-0" />
                 {!collapsed && <span>{item.label}</span>}
               </Link>

@@ -38,17 +38,17 @@ export default function DashboardPage() {
     }
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   const statCards = [
-    { label: "Total Jobs", value: stats?.jobs.total || 0, icon: Activity, color: "from-blue-500 to-cyan-500" },
-    { label: "Running", value: stats?.jobs.running || 0, icon: Clock, color: "from-amber-500 to-orange-500", pulse: true },
-    { label: "Completed", value: stats?.jobs.completed || 0, icon: CheckCircle, color: "from-emerald-500 to-green-500" },
-    { label: "Failed", value: stats?.jobs.failed || 0, icon: XCircle, color: "from-red-500 to-rose-500" },
-    { label: "Active Workers", value: stats?.workers.active || 0, icon: Server, color: "from-violet-500 to-purple-500" },
-    { label: "Queues", value: stats?.queues.total || 0, icon: Layers, color: "from-indigo-500 to-blue-500" },
-    { label: "DLQ Pending", value: stats?.dlq.pending || 0, icon: AlertTriangle, color: "from-rose-500 to-pink-500" },
-    { label: "Jobs/Hour", value: stats?.jobs.completed_last_hour || 0, icon: TrendingUp, color: "from-teal-500 to-emerald-500" },
+    { label: "Total Jobs", value: stats?.jobs.total || 0, icon: Activity },
+    { label: "Running", value: stats?.jobs.running || 0, icon: Clock, pulse: true },
+    { label: "Completed", value: stats?.jobs.completed || 0, icon: CheckCircle },
+    { label: "Failed", value: stats?.jobs.failed || 0, icon: XCircle },
+    { label: "Active Workers", value: stats?.workers.active || 0, icon: Server },
+    { label: "Queues", value: stats?.queues.total || 0, icon: Layers },
+    { label: "DLQ Pending", value: stats?.dlq.pending || 0, icon: AlertTriangle },
+    { label: "Jobs/Hour", value: stats?.jobs.completed_last_hour || 0, icon: TrendingUp },
   ];
 
   return (
@@ -63,12 +63,12 @@ export default function DashboardPage() {
         {statCards.map((card) => (
           <div key={card.label} className="glass-card p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center ${card.pulse ? "animate-pulse-glow" : ""}`}>
-                <card.icon className="w-4 h-4 text-white" />
+              <div className={`w-8 h-8 rounded-md bg-white/[0.03] border border-[var(--color-border)] flex items-center justify-center ${card.pulse ? "animate-pulse-glow" : ""}`}>
+                <card.icon className="w-4 h-4 text-[var(--color-foreground)]" />
               </div>
-              <span className="text-xs text-[var(--color-muted)]">{card.label}</span>
+              <span className="text-xs text-[var(--color-muted)] font-medium uppercase tracking-wider">{card.label}</span>
             </div>
-            <p className="text-2xl font-bold">{card.value.toLocaleString()}</p>
+            <p className="text-2xl font-medium tracking-tight">{card.value.toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
       {/* Job Status Distribution */}
       <div className="glass-card p-6">
         <h2 className="text-lg font-semibold mb-4">Job Status Distribution</h2>
-        <div className="flex gap-2 h-4 rounded-full overflow-hidden bg-[var(--color-surface)]">
+        <div className="flex gap-1 h-3 rounded-sm overflow-hidden bg-white/[0.05]">
           {stats && stats.jobs.total > 0 && (
             <>
               <div className="bg-slate-500 transition-all" style={{ width: `${(stats.jobs.queued / stats.jobs.total) * 100}%` }} title={`Queued: ${stats.jobs.queued}`} />

@@ -47,7 +47,7 @@ export default function QueuesPage() {
     } catch (err) { console.error(err); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -96,12 +96,12 @@ export default function QueuesPage() {
               </div>
             </div>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-sm">
-              <div><span className="text-[var(--color-muted)] text-xs block">Queued</span><span className="font-medium text-slate-300">{queue.queued_count}</span></div>
-              <div><span className="text-[var(--color-muted)] text-xs block">Running</span><span className="font-medium text-amber-400">{queue.running_count}</span></div>
-              <div><span className="text-[var(--color-muted)] text-xs block">Completed</span><span className="font-medium text-emerald-400">{queue.completed_count}</span></div>
-              <div><span className="text-[var(--color-muted)] text-xs block">Failed</span><span className="font-medium text-red-400">{queue.failed_count}</span></div>
-              <div><span className="text-[var(--color-muted)] text-xs block">Priority</span><span className="font-medium">{queue.priority}</span></div>
-              <div><span className="text-[var(--color-muted)] text-xs block">Concurrency</span><span className="font-medium">{queue.concurrency}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Queued</span><span className="font-medium text-[var(--color-foreground)]">{queue.queued_count}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Running</span><span className="font-medium text-[var(--color-foreground)]">{queue.running_count}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Completed</span><span className="font-medium text-[var(--color-foreground)]">{queue.completed_count}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Failed</span><span className="font-medium text-[var(--color-foreground)]">{queue.failed_count}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Priority</span><span className="font-medium text-[var(--color-foreground)]">{queue.priority}</span></div>
+              <div><span className="text-[var(--color-muted)] text-xs block">Concurrency</span><span className="font-medium text-[var(--color-foreground)]">{queue.concurrency}</span></div>
             </div>
             {queue.retry_policy_name && (
               <div className="mt-2 text-xs text-[var(--color-muted)]">

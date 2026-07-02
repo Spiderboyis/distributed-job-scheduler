@@ -32,13 +32,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "radial-gradient(ellipse at top, #111827 0%, #0a0f1e 50%)" }}>
-      <div className="glass-card p-8 w-full max-w-md animate-slide-in">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[var(--color-background)]">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.05)_0%,transparent_50%)]" />
+      <div className="glass-card p-8 w-full max-w-md animate-slide-in relative z-10">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+            <Zap className="w-6 h-6 text-black" />
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">JobForge</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-foreground)] tracking-tight">JobForge</h1>
         </div>
         <p className="text-center text-sm text-[var(--color-muted)] mb-6">Distributed Job Scheduling Platform</p>
 
@@ -65,7 +66,7 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-[var(--color-muted)] mt-4">
           {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button onClick={() => setIsLogin(!isLogin)} className="text-blue-400 ml-1 hover:underline">{isLogin ? "Register" : "Sign In"}</button>
+          <button onClick={() => setIsLogin(!isLogin)} className="text-[var(--color-foreground)] ml-1 font-medium hover:underline">{isLogin ? "Register" : "Sign In"}</button>
         </p>
         <p className="text-center text-xs text-[var(--color-muted)] mt-2 opacity-60">Demo: demo@jobscheduler.dev / demo123456</p>
       </div>

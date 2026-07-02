@@ -55,7 +55,7 @@ export default function QueueDetailPage() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -72,10 +72,10 @@ export default function QueueDetailPage() {
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[{ l: "Queued", v: stats.queued, c: "text-slate-300" }, { l: "Running", v: stats.running, c: "text-amber-400" }, { l: "Completed", v: stats.completed, c: "text-emerald-400" }, { l: "Failed", v: stats.failed, c: "text-red-400" }, { l: "Avg Duration", v: stats.avg_duration_ms ? `${Math.round(stats.avg_duration_ms)}ms` : "N/A", c: "text-blue-400" }].map(s => (
+          {[{ l: "Queued", v: stats.queued }, { l: "Running", v: stats.running }, { l: "Completed", v: stats.completed }, { l: "Failed", v: stats.failed }, { l: "Avg Duration", v: stats.avg_duration_ms ? `${Math.round(stats.avg_duration_ms)}ms` : "N/A" }].map(s => (
             <div key={s.l} className="glass-card p-3 text-center">
               <p className="text-xs text-[var(--color-muted)]">{s.l}</p>
-              <p className={`text-lg font-bold ${s.c}`}>{s.v}</p>
+              <p className="text-2xl font-medium text-[var(--color-foreground)] tracking-tight">{s.v}</p>
             </div>
           ))}
         </div>
@@ -136,7 +136,7 @@ export default function QueueDetailPage() {
                   <td className="p-3"><span className={`badge ${statusColors[job.status]}`}><Icon className="w-3 h-3" />{job.status}</span></td>
                   <td className="p-3">{job.priority}</td>
                   <td className="p-3">{job.retry_count}/{job.max_retries}</td>
-                  <td className="p-3 text-[var(--color-muted)]">{new Date(job.created_at).toLocaleString()}</td>
+                  <td className="p-3 text-[var(--color-muted)] font-mono text-xs">{new Date(job.created_at).toLocaleString()}</td>
                   <td className="p-3"><ChevronRight className="w-4 h-4 text-[var(--color-muted)]" /></td>
                 </tr>
               );

@@ -75,14 +75,14 @@ export default function JobDetailPage() {
 
         <div className="glass-card p-5 space-y-3">
           <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider">Payload</h2>
-          <pre className="text-xs bg-[var(--color-surface)] p-3 rounded-lg overflow-auto max-h-48">{JSON.stringify(job.payload, null, 2)}</pre>
+          <pre className="text-xs font-mono bg-white/[0.02] border border-[var(--color-border)] p-3 rounded-lg overflow-auto max-h-48">{JSON.stringify(job.payload, null, 2)}</pre>
           {job.result && (<>
             <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider mt-4">Result</h2>
-            <pre className="text-xs bg-[var(--color-surface)] p-3 rounded-lg overflow-auto max-h-48 text-emerald-400">{JSON.stringify(job.result, null, 2)}</pre>
+            <pre className="text-xs font-mono bg-white/[0.02] border border-[var(--color-border)] p-3 rounded-lg overflow-auto max-h-48 text-[var(--color-foreground)]">{JSON.stringify(job.result, null, 2)}</pre>
           </>)}
           {job.error && (<>
             <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wider mt-4">Error</h2>
-            <pre className="text-xs bg-red-500/5 p-3 rounded-lg text-red-400 border border-red-500/10">{job.error}</pre>
+            <pre className="text-xs font-mono bg-red-500/5 p-3 rounded-lg text-red-400 border border-red-500/10">{job.error}</pre>
           </>)}
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function JobDetailPage() {
         {executions.length > 0 ? (
           <div className="space-y-2">
             {executions.map((ex: any) => (
-              <div key={ex.id} className="flex items-center gap-3 p-2 rounded-lg bg-[var(--color-surface)] text-sm">
+              <div key={ex.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-[var(--color-border)] text-sm">
                 <span className={`badge ${statusColors[ex.status]}`}>Attempt {ex.attempt}</span>
                 <span className="text-[var(--color-muted)]">{ex.worker_name || "unknown worker"}</span>
                 <span className="text-[var(--color-muted)]">{ex.duration_ms ? `${ex.duration_ms}ms` : "—"}</span>

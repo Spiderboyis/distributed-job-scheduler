@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   const copyKey = (key: string) => { navigator.clipboard.writeText(key); setCopiedKey(key); setTimeout(() => setCopiedKey(null), 2000); };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -49,12 +49,12 @@ export default function SettingsPage() {
       <div className="glass-card p-5">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-3 flex items-center gap-2"><Building2 className="w-4 h-4" /> Organizations</h2>
         {orgs.map(org => (
-          <div key={org.id} className="flex items-center justify-between p-3 bg-[var(--color-surface)] rounded-lg mb-2">
+          <div key={org.id} className="flex items-center justify-between p-3 bg-white/[0.02] border border-[var(--color-border)] rounded-lg mb-2">
             <div>
               <p className="font-medium">{org.name}</p>
               <p className="text-xs text-[var(--color-muted)]">{org.slug} · {org.member_count} members · {org.project_count} projects</p>
             </div>
-            <span className="badge bg-blue-500/10 text-blue-400">{org.user_role}</span>
+            <span className="badge bg-white/5 border border-[var(--color-border)] text-[var(--color-muted)]">{org.user_role}</span>
           </div>
         ))}
       </div>
@@ -63,7 +63,7 @@ export default function SettingsPage() {
       <div className="glass-card p-5">
         <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-3 flex items-center gap-2"><FolderOpen className="w-4 h-4" /> Projects & API Keys</h2>
         {projects.map(proj => (
-          <div key={proj.id} className="p-3 bg-[var(--color-surface)] rounded-lg mb-2">
+          <div key={proj.id} className="p-3 bg-white/[0.02] border border-[var(--color-border)] rounded-lg mb-2">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <p className="font-medium">{proj.name}</p>
@@ -72,7 +72,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex items-center gap-2 bg-[var(--color-background)] rounded p-2">
               <Key className="w-3.5 h-3.5 text-[var(--color-muted)]" />
-              <code className="text-xs flex-1 text-amber-400">
+              <code className="text-xs flex-1 text-[var(--color-foreground)] font-mono tracking-widest">
                 {revealedKeys[proj.id] ? proj.api_key : maskKey(proj.api_key)}
               </code>
               <button onClick={() => toggleKey(proj.id)} className="text-xs text-[var(--color-muted)] hover:text-white px-2">
@@ -91,7 +91,7 @@ export default function SettingsPage() {
         <h2 className="text-sm font-semibold text-[var(--color-muted)] uppercase tracking-wider mb-3 flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Retry Policies</h2>
         <div className="grid md:grid-cols-3 gap-3">
           {policies.map((p: any) => (
-            <div key={p.id} className="p-3 bg-[var(--color-surface)] rounded-lg">
+            <div key={p.id} className="p-3 bg-white/[0.02] border border-[var(--color-border)] rounded-lg">
               <p className="font-medium text-sm">{p.name}</p>
               <div className="mt-2 space-y-1 text-xs text-[var(--color-muted)]">
                 <p>Strategy: <span className="text-[var(--color-foreground)]">{p.strategy}</span></p>

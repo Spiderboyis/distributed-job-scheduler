@@ -14,7 +14,7 @@ export default function WorkersPage() {
     setLoading(false);
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -50,19 +50,19 @@ export default function WorkersPage() {
               </div>
 
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-[var(--color-surface)] rounded-lg p-2">
+                <div className="bg-white/[0.02] border border-[var(--color-border)] rounded-lg p-2">
                   <Activity className="w-3.5 h-3.5 text-amber-400 mx-auto mb-1" />
-                  <p className="text-sm font-bold">{w.active_jobs}</p>
+                  <p className="text-sm font-bold text-[var(--color-foreground)]">{w.active_jobs}</p>
                   <p className="text-[10px] text-[var(--color-muted)]">Active</p>
                 </div>
-                <div className="bg-[var(--color-surface)] rounded-lg p-2">
+                <div className="bg-white/[0.02] border border-[var(--color-border)] rounded-lg p-2">
                   <Heart className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-1" />
-                  <p className="text-sm font-bold">{w.completed_jobs}</p>
+                  <p className="text-sm font-bold text-[var(--color-foreground)]">{w.completed_jobs}</p>
                   <p className="text-[10px] text-[var(--color-muted)]">Done</p>
                 </div>
-                <div className="bg-[var(--color-surface)] rounded-lg p-2">
-                  <Clock className="w-3.5 h-3.5 text-blue-400 mx-auto mb-1" />
-                  <p className="text-sm font-bold">{w.seconds_since_heartbeat || 0}s</p>
+                <div className="bg-white/[0.02] border border-[var(--color-border)] rounded-lg p-2">
+                  <Clock className="w-3.5 h-3.5 text-[var(--color-muted)] mx-auto mb-1" />
+                  <p className="text-sm font-bold text-[var(--color-foreground)]">{w.seconds_since_heartbeat || 0}s</p>
                   <p className="text-[10px] text-[var(--color-muted)]">Heartbeat</p>
                 </div>
               </div>
