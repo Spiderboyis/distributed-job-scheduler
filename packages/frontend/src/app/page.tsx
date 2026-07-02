@@ -32,9 +32,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[var(--color-background)]">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#000000]">
+      {/* Dynamic Orbs to make the glassmorphism pop */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] animate-pulse-glow" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]" />
+      
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.05)_0%,transparent_50%)]" />
-      <div className="glass-card p-8 w-full max-w-md animate-slide-in relative z-10">
+      
+      {/* iPhone Glassmorphism Card */}
+      <div className="p-8 w-full max-w-md animate-slide-in relative z-10 bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-[32px]">
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
             <Zap className="w-6 h-6 text-black" />

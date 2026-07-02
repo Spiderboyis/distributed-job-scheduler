@@ -49,6 +49,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             );
           })}
         </nav>
+        <div className="p-3 border-t border-[var(--color-border)] mt-auto">
+          {!collapsed && user && <p className="text-xs text-[var(--color-muted)] mb-2 truncate px-2">{user.email}</p>}
+          <button onClick={handleLogout} className="flex items-center gap-2 text-xs text-[var(--color-muted)] hover:text-red-400 hover:bg-white/[0.05] rounded-lg transition-colors w-full px-2 py-2">
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </aside>
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
