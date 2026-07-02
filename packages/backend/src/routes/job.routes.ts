@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { query, transaction } from '../config/database.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate, paginate } from '../middleware/validate.js';
-import { NotFoundError, ConflictError, ValidationError } from '../utils/errors.js';
+import { NotFoundError, ConflictError, ValidationError, UnauthorizedError } from '../utils/errors.js';
 
 const router = Router();
 
