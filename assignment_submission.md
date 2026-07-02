@@ -1,6 +1,8 @@
 # JobForge: Distributed Job Scheduler
 
-## Live Deployments
+## Submission Links
+- **GitHub Profile**: [https://github.com/Spiderboyis](https://github.com/Spiderboyis)
+- **GitHub Repository**: [https://github.com/Spiderboyis/distributed-job-scheduler](https://github.com/Spiderboyis/distributed-job-scheduler)
 - **Frontend App (Vercel)**: [https://distributed-job-scheduler-frontend-six.vercel.app/](https://distributed-job-scheduler-frontend-six.vercel.app/)
 - **Backend API & Worker (Render)**: [https://jobscheduler-backend.onrender.com](https://jobscheduler-backend.onrender.com)
 
@@ -166,3 +168,55 @@ The Settings tab has been streamlined to highlight retry policies, simple sign-o
 ### 4. UI/UX: High-Fidelity Glassmorphism
 **Decision:** We bypassed generic UI libraries in favor of a custom, heavily polished "Midnight Minimalist" aesthetic featuring dynamic background orbs and deep `backdrop-blur-2xl` glass cards.
 **Trade-off:** It takes significantly more CSS optimization (especially performance tuning for blurs) than importing a standard Tailwind UI kit. However, it successfully delivers a highly premium, state-of-the-art "Wow" factor requested for modern developer tooling.
+
+---
+
+## 7. Core Platform Walkthrough & Functional Flow
+
+This section details the step-by-step user journey and technical pipeline as jobs progress through the scheduler system:
+
+1. **User Registration & Token Handshake**:
+   - The user visits the Landing page (`/`) and creates a new account.
+   - Upon submitting details, `POST /api/auth/register` creates the user record and automatically establishes a default tenant `Organization` and `Project` linked to them.
+   - Logging in via `POST /api/auth/login` verifies credentials against `bcrypt` hashes and returns a signed JSON Web Token (JWT) containing user and role properties. This token is saved in client storage for authenticated header verification on all subsequent requests.
+
+2. **Creating and Configuring Queues**:
+   - Within the dashboard view (`/dashboard/queues`), the operator clicks "+ New Queue".
+   - The form allows specifying key configuration bounds: Queue Name, Concurrency Limit (maximum parallel active jobs), Priority Rating, and a default Retry Policy (Fixed delay, Linear backoff, or Exponential backoff).
+   - Firing the form invokes `POST /api/projects/:projectId/queues` which writes to the database. The system automatically scopes this request, preventing a user from modifying queues belonging to other organizations.
+
+3. **Job Ingestion & Timing Configuration**:
+   - Within a queue detail page (`/dashboard/queues/[queueId]`), users click "+ New Job" to enque job payloads.
+   - The scheduler supports three timing configurations:
+     - **Immediate Execution**: Sets the execution timing field (`run_at`) to the current timestamp (`NOW()`) and status to `queued`.
+     - **Delayed Execution**: Delays starting by a user-specified delay duration (in seconds), setting `run_at` to `NOW() + delay` and status to `scheduled`.
+     - **Scheduled Execution**: Sets `run_at` to a specific future date-time calendar picker timestamp and status to `scheduled`.
+   - The payload input allows submitting structured JSON objects (e.g. `{"userId": 100, "action": "send_welcome"}`). This calls `POST /api/queues/:queueId/jobs` to atomically persist the job.
+
+4. **Distributed Worker Claiming Loop**:
+   - The independent worker service (`packages/backend/src/worker/worker.ts`) registers itself in the database and enters a poll loop.
+   - The worker targets eligible jobs whose `run_at <= NOW()` and whose status is currently `queued` or `scheduled`.
+   - To prevent multiple workers from executing the same task, the worker performs atomic claims using a PostgreSQL query with the `SELECT ... FOR UPDATE SKIP LOCKED` clause. This locks and updates claimed jobs to `status = 'claimed'` instantly while bypassing already-locked rows, ensuring linear and distributed concurrency without race conditions.
+
+5. **Execution Simulation & Logs**:
+   - Once claimed, the worker transitions the job status to `running`, starts a timer, and spins up a simulated processing workload corresponding to the job type (e.g., resizing images or compiling pdf reports).
+   - An execution audit record is written to the `job_executions` table detailing the assigned worker's hostname, process ID, execution state, and exact timestamp.
+   - Upon successful execution, the job status is set to `completed` and final metrics are saved.
+
+6. **Error Handlers & Retry Policies**:
+   - If job execution encounters an error (e.g., simulated network timeout or system overload), the worker catches the exception and reviews the queue's retry policy.
+   - If the current attempts have not reached the limit (`attempts < max_retries`), the system calculates the backoff interval (e.g., exponential delay). The job is moved back to the `queued` state, and its `run_at` timestamp is pushed forward by the calculated delay.
+   - If attempts exceed the limit, the job is labeled as `failed`, ejected from processing queue, and sent to the **Dead Letter Queue (DLQ)**.
+
+7. **Dead Letter Queue (DLQ) & Operator Recovery**:
+   - Administrators can monitor failing nodes inside the Dead Letter Queue dashboard view (`/dashboard/dlq`).
+   - The DLQ displays critical diagnostics: the error message stack trace, the source queue, total retry attempts, and the failure timestamp.
+   - Operators can rectify downstream issues and trigger a manual retry. Clicking "Retry" sends a `POST /api/jobs/:jobId/retry` request to reset the attempts to `0` and place the job back in the `queued` pipeline with `run_at = NOW()`.
+
+8. **Live Dashboard Telemetry (SSE)**:
+   - When the user views the main Dashboard page, the browser starts a Server-Sent Events stream: `/api/sse/events?token={JWT}`.
+   - The backend validates the token, listens for database events via PostgreSQL's built-in `LISTEN/NOTIFY` protocol, and broadcasts real-time updates of job metrics and active worker heartbeats over a single HTTP connection. The client instantly refreshes without page reloads.
+
+9. **Secure Account & Workspace Purging**:
+   - If a user chooses to delete their account under Settings (`/dashboard/settings`), they enter their password for authentication verification.
+   - The backend fires `DELETE /api/auth/account`. This executes a database transaction that deletes the user record and triggers a cascading cascade deletion of organizations created/owned by the user. All associated projects, queues, jobs, and execution logs are deleted cleanly from the database, while leaving data of other platform tenants untouched.
