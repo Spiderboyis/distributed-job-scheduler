@@ -28,9 +28,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const handleLogout = () => { api.clearToken(); router.push("/"); };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative overflow-hidden bg-[#000000]">
+      {/* Background Orbs for Glassmorphism */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-900/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[40%] left-[50%] w-[500px] h-[500px] bg-emerald-900/10 rounded-full blur-[150px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
+      
       {/* Sidebar */}
-      <aside className={`${collapsed ? "w-16" : "w-60"} border-r border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col transition-all duration-200`}>
+      <aside className={`${collapsed ? "w-16" : "w-60"} relative z-10 border-r border-white/10 bg-white/[0.02] backdrop-blur-3xl flex flex-col transition-all duration-200`}>
         <div className="p-4 flex items-center gap-2 border-b border-[var(--color-border)]">
           <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-black" />
@@ -58,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto relative z-10">
         <div className="p-6 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
