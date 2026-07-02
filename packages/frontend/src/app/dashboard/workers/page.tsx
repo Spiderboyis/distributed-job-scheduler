@@ -9,10 +9,10 @@ export default function WorkersPage() {
 
   useEffect(() => { load(); const i = setInterval(load, 10000); return () => clearInterval(i); }, []);
 
-  const load = async () => {
+  async function load() {
     try { const d = await api.getWorkers(); setWorkers(d.workers); } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
 

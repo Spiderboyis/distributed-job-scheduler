@@ -11,14 +11,14 @@ export default function DLQPage() {
 
   useEffect(() => { load(); }, [page]);
 
-  const load = async () => {
+  async function load() {
     try {
       const d = await api.getDlqEntries({ page, limit: "20" });
       setEntries(d.entries);
       setPagination(d.pagination);
     } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }
 
   const handleRetry = async (id: string) => {
     try { await api.retryDlqEntry(id); load(); } catch (err) { console.error(err); }

@@ -3,7 +3,7 @@
  * Pushes job stats, worker status, and queue health every 3 seconds.
  */
 import { Router, Request, Response } from 'express';
-import { query } from '../config/database.js';
+import { query, dbEvents } from '../config/database.js';
 
 const router = Router();
 
@@ -40,12 +40,26 @@ router.get('/events', (req: Request, res: Response) => {
     }
   };
 
-  // Send initial data
+  // Send initial data immediately
   sendUpdate();
-  const interval = setInterval(sendUpdate, 3000);
+  
+  // Use a debouncer to prevent flooding clients with updates if 100 jobs finish at once
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  const triggerUpdate = () => {
+    if (debounceTimer) return;
+    debounceTimer = setTimeout(() => {
+      sendUpdate();
+      debounceTimer = null;
+    }, 500);
+  };
+
+  dbEvents.on('jobs_changed', triggerUpdate);
+  dbEvents.on('workers_changed', triggerUpdate);
 
   req.on('close', () => {
-    clearInterval(interval);
+    if (debounceTimer) clearTimeout(debounceTimer);
+    dbEvents.off('jobs_changed', triggerUpdate);
+    dbEvents.off('workers_changed', triggerUpdate);
   });
 });
 

@@ -74,7 +74,7 @@ class ApiClient {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return this.request<any>(`/workers/dlq/entries${qs}`);
   }
-  async retryDlqEntry(id: string) { return this.request<any>(`/dlq/${id}/retry`, { method: 'POST' }); }
+  async retryDlqEntry(id: string) { return this.request<any>(`/workers/dlq/${id}/retry`, { method: 'POST' }); }
 
   // Dashboard
   async getDashboardStats() { return this.request<any>('/workers/dashboard/stats'); }

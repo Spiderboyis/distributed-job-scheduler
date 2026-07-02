@@ -14,14 +14,15 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  async function load() {
+    try {
+      const data = await api.getDashboardStats();
+      setStats(data);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  }
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api.getDashboardStats();
-        setStats(data);
-      } catch (err) { console.error(err); }
-      setLoading(false);
-    };
     load();
 
     // SSE for live updates

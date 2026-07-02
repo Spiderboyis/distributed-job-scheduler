@@ -22,7 +22,7 @@ export default function QueueDetailPage() {
 
   useEffect(() => { loadAll(); }, [queueId, filter]);
 
-  const loadAll = async () => {
+  async function loadAll() {
     try {
       const [qData, jData, sData] = await Promise.all([
         api.getQueue(queueId),
@@ -35,7 +35,7 @@ export default function QueueDetailPage() {
       setStats(sData.stats);
     } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }
 
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();

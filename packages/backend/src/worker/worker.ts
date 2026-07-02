@@ -11,7 +11,7 @@
  */
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import { query, transaction } from '../config/database.js';
+import { query, transaction, dbEvents } from '../config/database.js';
 import { env } from '../config/env.js';
 import { calculateRetryDelay, shouldRetry, RetryPolicy } from '../utils/retry.js';
 import { executeSimulatedJob } from './job-executor.js';
@@ -24,6 +24,11 @@ export class WorkerService {
   private activeJobs = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private dbListener = () => {
+    if (this.isRunning && !this.isDraining && this.activeJobs < env.WORKER_CONCURRENCY) {
+      this.poll();
+    }
+  };
 
   constructor(name?: string) {
     this.workerName = name || `worker-${os.hostname()}-${process.pid}`;
@@ -50,6 +55,9 @@ export class WorkerService {
     // Start polling
     this.poll();
 
+    // Listen for instant database notifications
+    dbEvents.on('jobs_changed', this.dbListener);
+
     // Start stale worker detection
     setInterval(() => this.reclaimStaleJobs(), env.WORKER_STALE_THRESHOLD);
   }
@@ -73,6 +81,7 @@ export class WorkerService {
     // Cleanup
     if (this.pollTimer) clearTimeout(this.pollTimer);
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    dbEvents.off('jobs_changed', this.dbListener);
     this.isRunning = false;
 
     if (this.workerId) {
@@ -83,10 +92,9 @@ export class WorkerService {
 
   private async poll(): Promise<void> {
     if (!this.isRunning || this.isDraining) return;
-    if (this.activeJobs >= env.WORKER_CONCURRENCY) {
-      this.pollTimer = setTimeout(() => this.poll(), env.WORKER_POLL_INTERVAL);
-      return;
-    }
+    if (this.activeJobs >= env.WORKER_CONCURRENCY) return;
+
+    if (this.pollTimer) clearTimeout(this.pollTimer);
 
     try {
       const job = await this.claimJob();
@@ -94,16 +102,20 @@ export class WorkerService {
         this.activeJobs++;
         this.processJob(job).finally(() => {
           this.activeJobs--;
+          // Trigger a poll when a job finishes in case more are waiting
+          this.poll();
         });
-        // Immediately poll again if we got a job (fill concurrency slots)
-        setImmediate(() => this.poll());
+        // Immediately try to claim another job to fill concurrency slots
+        this.poll();
         return;
       }
     } catch (error) {
       console.error('[Worker] Poll error:', error);
     }
 
-    this.pollTimer = setTimeout(() => this.poll(), env.WORKER_POLL_INTERVAL);
+    // No jobs found. Fallback to a slow 60-second timer for delayed/scheduled jobs.
+    // Standard execution relies on instant dbEvents triggers.
+    this.pollTimer = setTimeout(() => this.poll(), 60000);
   }
 
   /**

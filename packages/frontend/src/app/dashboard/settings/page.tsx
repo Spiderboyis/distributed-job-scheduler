@@ -10,16 +10,17 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  async function load() {
+    try {
+      const [orgData, projData, polData] = await Promise.all([api.getOrgs(), api.getProjects(), api.getRetryPolicies()]);
+      setOrgs(orgData.organizations);
+      setProjects(projData.projects);
+      setPolicies(polData.policies);
+    } catch (err) { console.error(err); }
+    setLoading(false);
+  }
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [orgData, projData, polData] = await Promise.all([api.getOrgs(), api.getProjects(), api.getRetryPolicies()]);
-        setOrgs(orgData.organizations);
-        setProjects(projData.projects);
-        setPolicies(polData.policies);
-      } catch (err) { console.error(err); }
-      setLoading(false);
-    };
     load();
   }, []);
 

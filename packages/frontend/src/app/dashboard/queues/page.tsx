@@ -16,7 +16,7 @@ export default function QueuesPage() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  async function loadData() {
     try {
       const projectsData = await api.getProjects();
       setProjects(projectsData.projects);
@@ -26,7 +26,7 @@ export default function QueuesPage() {
       }
     } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }
 
   const handlePauseResume = async (queueId: string, isPaused: boolean) => {
     try {

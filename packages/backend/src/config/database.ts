@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { EventEmitter } from 'events';
 import { env } from './env.js';
 
 const { Pool } = pg;
@@ -16,6 +17,41 @@ pool.on('error', (err) => {
   console.error('[DB] Unexpected error on idle client:', err);
 });
 
+export const dbEvents = new EventEmitter();
+
+let listenClient: pg.Client | null = null;
+
+export async function setupDatabaseListeners() {
+  if (listenClient) return;
+  listenClient = new pg.Client({
+    connectionString: env.DATABASE_URL,
+    ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  });
+
+  try {
+    await listenClient.connect();
+    console.log('[DB] Dedicated LISTEN client connected');
+
+    listenClient.on('notification', (msg) => {
+      if (msg.channel) {
+        dbEvents.emit(msg.channel, msg.payload);
+      }
+    });
+
+    await listenClient.query('LISTEN jobs_changed');
+    await listenClient.query('LISTEN workers_changed');
+    
+    listenClient.on('error', (err) => {
+      console.error('[DB] LISTEN client error:', err);
+      // Auto-reconnect logic could go here in production
+      listenClient = null;
+      setTimeout(setupDatabaseListeners, 5000);
+    });
+  } catch (error) {
+    console.error('[DB] Failed to setup LISTEN client:', error);
+  }
+}
+
 /**
  * Execute a single query
  */
@@ -27,7 +63,7 @@ export async function query<T extends pg.QueryResultRow = any>(
   const result = await pool.query<T>(text, params);
   const duration = Date.now() - start;
 
-  if (env.NODE_ENV === 'development' && duration > 100) {
+  if (env.NODE_ENV === 'development' && duration > 500) {
     console.log(`[DB] Slow query (${duration}ms):`, text.substring(0, 100));
   }
 

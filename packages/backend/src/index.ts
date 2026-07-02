@@ -2,8 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import hpp from 'hpp';
 import { env } from './config/env.js';
-import { checkDatabaseHealth } from './config/database.js';
+import { checkDatabaseHealth, setupDatabaseListeners } from './config/database.js';
 import { requestId, errorHandler, notFoundHandler } from './middleware/error.js';
 import { WorkerService } from './worker/worker.js';
 import { SchedulerService } from './worker/scheduler.js';
@@ -24,8 +26,26 @@ const app = express();
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
+app.use(hpp()); // Prevent HTTP Parameter Pollution
 app.use(morgan('short'));
 app.use(requestId);
+
+// ── Rate Limiting ───────────────────────────────────────────
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per windowMs
+  message: { error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests, please try again later.' } },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Limit each IP to 30 requests per windowMs for auth routes
+  message: { error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many authentication attempts, please try again later.' } },
+});
+
+app.use('/api', apiLimiter);
 
 // ── Health Check ────────────────────────────────────────────
 app.get('/api/health', async (_req, res) => {
@@ -39,13 +59,13 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // ── API Routes ──────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/orgs', orgRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api', queueRoutes);      // /api/projects/:id/queues + /api/queues/:id
 app.use('/api', jobRoutes);         // /api/queues/:id/jobs + /api/jobs/:id
 app.use('/api', scheduledRoutes);   // /api/queues/:id/scheduled + /api/scheduled/:id
-app.use('/api', workerRoutes);      // /api/workers + /api/dlq + /api/dashboard/stats
+app.use('/api/workers', workerRoutes); // /api/workers + /api/workers/dlq + /api/workers/dashboard/stats
 app.use('/api/sse', sseRoutes);
 
 // ── Error Handling ──────────────────────────────────────────
@@ -53,7 +73,8 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ── Start Server ────────────────────────────────────────────
-const server = app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, async () => {
+  await setupDatabaseListeners();
   console.log(`\n🚀 Job Scheduler API running on http://localhost:${env.PORT}`);
   console.log(`📝 Environment: ${env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${env.PORT}/api/health\n`);

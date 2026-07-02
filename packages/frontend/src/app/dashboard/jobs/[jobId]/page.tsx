@@ -17,10 +17,10 @@ export default function JobDetailPage() {
 
   useEffect(() => { load(); }, [jobId]);
 
-  const load = async () => {
+  async function load() {
     try { const d = await api.getJob(jobId); setData(d); } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }
 
   const handleRetry = async () => {
     setRetrying(true);
