@@ -11,8 +11,8 @@
 ## 1. Setup & Deployment Instructions
 
 ### 1.1 Prerequisites
-- Node.js (v24.x)
-- PostgreSQL (v15+)
+- Node.js (v20+)
+- PostgreSQL (v16+)
 - Docker & Docker Compose
 - Git
 
@@ -66,8 +66,8 @@ This automatically builds the containers, runs migrations, and links the service
 
 ---
 
-### 1.4 Production Deployment (Render / Cloud)
-This application is configured for direct cloud deployment using services like Render, Vercel, and cloud PostgreSQL databases.
+### 1.4 Production Deployment (Vercel + Render + Neon)
+This application is deployed across three cloud services: **Vercel** (frontend), **Render** (backend + workers), and **Neon** (database).
 
 #### Database Deployment (PostgreSQL):
 - **Platform**: **Neon** — Serverless PostgreSQL (v16+). Neon provides a fully managed, auto-scaling, serverless Postgres database with branching, connection pooling via **PgBouncer**, and instant cold-start support.
@@ -178,8 +178,8 @@ This section details the step-by-step user journey and technical pipeline as job
 
 1. **User Registration & Token Handshake**:
    - The user visits the Landing page (`/`) and creates a new account.
-   - Upon submitting details, `POST /api/auth/register` creates the user record and automatically establishes a default tenant `Organization` and `Project` linked to them.
-   - Logging in via `POST /api/auth/login` verifies credentials against `bcrypt` hashes and returns a signed JSON Web Token (JWT) containing user and role properties. This token is saved in client storage for authenticated header verification on all subsequent requests.
+   - Upon submitting details, `POST /api/auth/register` creates the user record, hashes the password with `bcrypt`, and returns a signed JWT access token and a refresh token.
+   - Logging in via `POST /api/auth/login` verifies credentials against `bcrypt` hashes and returns a signed JSON Web Token (JWT). This token is saved in client storage for authenticated header verification on all subsequent requests.
 
 2. **Creating and Configuring Queues**:
    - Within the dashboard view (`/dashboard/queues`), the operator clicks "+ New Queue".

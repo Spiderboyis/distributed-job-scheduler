@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobForge — Frontend Dashboard
 
-## Getting Started
+A Next.js 16 web application for the **JobForge Distributed Job Scheduler** platform.
 
-First, run the development server:
+## 🔗 Live Demo
+- **Frontend**: [https://distributed-job-scheduler-frontend-six.vercel.app/](https://distributed-job-scheduler-frontend-six.vercel.app/)
+- **Backend API**: [https://jobscheduler-backend.onrender.com](https://jobscheduler-backend.onrender.com)
+
+## 🛠 Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4 + Custom Glassmorphism CSS
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Auth**: JWT stored in localStorage
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js v20+
+- Backend API running at `http://localhost:3001`
+
+### Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# From the monorepo root
+npm run dev:frontend
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file in this directory:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-## Learn More
+### Production Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build:frontend
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/app/
+├── page.tsx                    # Login / Register page
+├── globals.css                 # Global styles + glassmorphism utilities
+├── layout.tsx                  # Root layout
+├── dashboard/
+│   ├── layout.tsx              # Sidebar + mobile drawer layout
+│   ├── page.tsx                # Main dashboard stats
+│   ├── queues/
+│   │   ├── page.tsx            # Queue list view
+│   │   └── [queueId]/page.tsx  # Queue details + job table
+│   ├── workers/page.tsx        # Worker monitoring
+│   ├── dlq/page.tsx            # Dead Letter Queue
+│   ├── jobs/[jobId]/page.tsx   # Job execution detail
+│   └── settings/page.tsx       # Retry policies + account settings
+└── lib/
+    └── api.ts                  # Typed API client (REST + SSE)
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Design System
+The UI uses a **"Midnight Minimalist"** design aesthetic with:
+- Deep black backgrounds (`#000000`)
+- Glassmorphism cards (`backdrop-blur`, `bg-white/[0.03]`)
+- Animated background orbs for depth
+- Responsive layout: desktop sidebar + mobile hamburger drawer
