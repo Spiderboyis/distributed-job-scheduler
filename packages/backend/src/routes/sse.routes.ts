@@ -4,10 +4,22 @@
  */
 import { Router, Request, Response } from 'express';
 import { query, dbEvents } from '../config/database.js';
+import { verifyAccessToken } from '../utils/jwt.js';
 
 const router = Router();
 
 router.get('/events', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  let userId: string;
+  try {
+    if (!token) throw new Error();
+    const payload = verifyAccessToken(token);
+    userId = payload.userId;
+  } catch {
+    res.status(401).end();
+    return;
+  }
+
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -18,14 +30,27 @@ router.get('/events', (req: Request, res: Response) => {
   const sendUpdate = async () => {
     try {
       const jobStats = await query(
-        `SELECT count(*)::int as total, count(*) FILTER (WHERE status = 'queued')::int as queued,
-                count(*) FILTER (WHERE status = 'running')::int as running,
-                count(*) FILTER (WHERE status = 'completed')::int as completed,
-                count(*) FILTER (WHERE status = 'failed')::int as failed,
-                count(*) FILTER (WHERE status = 'dead')::int as dead FROM jobs`
+        `SELECT count(*)::int as total, count(*) FILTER (WHERE j.status = 'queued')::int as queued,
+                count(*) FILTER (WHERE j.status = 'running')::int as running,
+                count(*) FILTER (WHERE j.status = 'completed')::int as completed,
+                count(*) FILTER (WHERE j.status = 'failed')::int as failed,
+                count(*) FILTER (WHERE j.status = 'dead')::int as dead 
+         FROM jobs j
+         JOIN queues q ON q.id = j.queue_id
+         JOIN projects p ON p.id = q.project_id
+         JOIN org_members om ON om.organization_id = p.organization_id
+         WHERE om.user_id = $1`, [userId]
       );
       const workerStats = await query(
-        `SELECT count(*)::int as total, count(*) FILTER (WHERE status = 'active')::int as active FROM workers`
+        `SELECT count(*)::int as total, count(*) FILTER (WHERE w.status = 'active')::int as active 
+         FROM workers w
+         WHERE EXISTS (
+           SELECT 1 FROM jobs j
+           JOIN queues q ON q.id = j.queue_id
+           JOIN projects p ON p.id = q.project_id
+           JOIN org_members om ON om.organization_id = p.organization_id
+           WHERE j.claimed_by = w.id AND om.user_id = $1
+         )`, [userId]
       );
 
       const data = JSON.stringify({

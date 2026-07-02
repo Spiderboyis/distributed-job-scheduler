@@ -92,7 +92,8 @@ class ApiClient {
   // SSE
   createEventSource(): EventSource | null {
     if (typeof window === 'undefined') return null;
-    return new EventSource(`${API_BASE}/sse/events`);
+    const token = this.getToken();
+    return new EventSource(`${API_BASE}/sse/events?token=${token}`);
   }
 }
 
