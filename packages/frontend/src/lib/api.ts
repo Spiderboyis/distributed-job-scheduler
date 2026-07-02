@@ -14,7 +14,13 @@ class ApiClient {
 
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'Request failed');
+    if (!res.ok) {
+      let msg = data.error?.message || 'Request failed';
+      if (data.error?.details && Array.isArray(data.error.details)) {
+        msg += ': ' + data.error.details.map((d: any) => `${d.field} (${d.message})`).join(', ');
+      }
+      throw new Error(msg);
+    }
     return data as T;
   }
 

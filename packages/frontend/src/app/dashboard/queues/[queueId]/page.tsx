@@ -42,7 +42,8 @@ export default function QueueDetailPage() {
     try {
       let payload = {};
       try { payload = JSON.parse(newJob.payload); } catch {}
-      await api.createJob(queueId, { ...newJob, payload, ...(newJob.scheduledAt && { scheduledAt: new Date(newJob.scheduledAt).toISOString() }) });
+      const safePriority = Number.isNaN(newJob.priority) || newJob.priority === null ? 0 : newJob.priority;
+      await api.createJob(queueId, { ...newJob, priority: safePriority, payload, ...(newJob.scheduledAt && { scheduledAt: new Date(newJob.scheduledAt).toISOString() }) });
       setShowCreate(false);
       setNewJob({ name: "", type: "immediate", payload: "{}", priority: 0, scheduledAt: "" });
       loadAll();
